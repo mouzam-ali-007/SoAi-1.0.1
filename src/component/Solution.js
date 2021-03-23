@@ -662,22 +662,22 @@ const Solution = (props) => {
                 >
                   <Typography>{props.taskName}</Typography>
                 </AccordionSummary>
-                {console.log("PROPS -> TASKLIST", props.taskList)}
+                {console.log("PROPS -> TASKLIST", props.taskList[0].data)}
                 {props.taskList.map((task, key) => {
                   return (
                     <AccordionDetails component="fieldset" className={classes.formControl} id={key}>
                       <div>
                         <Typography variant="subtitle1" color="textSecondary">
-                          {task.name}
+                          {task.description}
                         </Typography>
                         <Grid container>
                           <Grid item>
                             <Quest
                               onChange={handleAnswers}
-                              //answer={getString(task.data.form.fldModel)}
+                              answer={getString(task.data.form.fldModel)}
                               taskName={props.taskName}
-                              //data={task.data.form}
-                              //fldName={task.data.form.fldName}
+                              data={task.data.form}
+                              fldName={task.data.form.fldName}
                             />
                           </Grid>
                           <Grid item>

@@ -25,7 +25,6 @@ const Quest = (props) => {
 
   useEffect(() => {
     setAnswer(props.answer);
-    console.log("Object ", object);
   }, []);
   return (
     <TextField
