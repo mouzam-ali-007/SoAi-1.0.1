@@ -28,14 +28,10 @@ function App() {
   const history = useHistory();
   React.useEffect(() => {
     ipcRenderer.on("hot-key-screen-shot", (event, message) => {
-      console.log("Capture Done ", message);
-      console.log(history);
       history.push("/test");
     });
 
     ipcRenderer.on("tray-screen-shot", (event, message) => {
-      console.log("Capture Done ", message);
-      console.log(history);
       history.push("/test");
     });
   });

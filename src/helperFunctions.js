@@ -9,12 +9,10 @@ export function shrinkExpiry() {
   let min = parseInt(time[1]);
   let hour = parseInt(time[0]);
   if (hour > 12) {
-    console.log("it is greater than 12 so we turn it into 12 hour format", hour);
     hour = hour - 12;
   }
 
   if (min === 0) {
-    console.log("Min is zero", min);
     min = 58;
   } else if (min === 1) {
     min = 59;

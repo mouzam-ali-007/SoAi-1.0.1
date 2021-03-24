@@ -278,8 +278,8 @@ const Solution = (props) => {
       const url = "https://cloud.so.ai:8443/API/Model/UploadFiles";
       const tenantId = props.selectedTenant.tenantId;
       const id = props.selectedTenant.id;
-      const type = clickedTask.type;
-      const typeId = clickedTask.id;
+      const type = clickedTask.taskType;
+      const typeId = clickedTask.taskID;
       const fileType = "ARTIFACT";
       const fileName = "Audio-" + Date.now();
       const contentType = file.type;
@@ -398,8 +398,8 @@ const Solution = (props) => {
     const url = "https://cloud.so.ai:8443/API/Model/UploadFiles";
     const tenantId = props.selectedTenant.tenantId;
     const id = props.selectedTenant.id;
-    const type = clickedTask.type;
-    const typeId = clickedTask.id;
+    const type = clickedTask.taskType;
+    const typeId = clickedTask.taskID;
     const fileType = "ARTIFACT";
     const fileName = dataFile.name;
     const contentType = dataFile.type;
@@ -463,8 +463,8 @@ const Solution = (props) => {
       const url = "https://cloud.so.ai:8443/API/Model/UploadFiles";
       const tenantId = props.selectedTenant.tenantId;
       const id = props.selectedTenant.id;
-      const type = clickedTask.type;
-      const typeId = clickedTask.id;
+      const type = clickedTask.taskType;
+      const typeId = clickedTask.taskID;
       const fileType = "ARTIFACT";
       const fileName = file.name;
       const contentType = file.type;
@@ -548,7 +548,7 @@ const Solution = (props) => {
     const sessionData = JSON.parse(sessionStorage.getItem("userAuthData"));
     const token = sessionData.token;
     const tenantId = props.selectedTenant.tenantId;
-    const taskId = clickedTask.id;
+    const taskId = clickedTask.taskID;
     const id = props.selectedTenant.id;
     const url = "https://cloud.so.ai:8443/API/Model/LoadFilelib";
 
@@ -576,7 +576,6 @@ const Solution = (props) => {
     })
       .then((res) => res.json())
       .then((jsonResponse) => {
-        console.log("json response ===>>", jsonResponse);
         if (!jsonResponse.message) {
           setArtifactLoading(false);
           setArtifacts([...jsonResponse.list]);
@@ -585,11 +584,6 @@ const Solution = (props) => {
           setArtifactLoading(false);
         }
       });
-
-    // console.log("Token is ", token)
-    // console.log("Tenant Id is ", tenantId)
-    // console.log("Id is ", id)
-    // console.log("Task Id is ", taskId)
   };
 
   const handleClose = () => {
@@ -662,22 +656,22 @@ const Solution = (props) => {
                 >
                   <Typography>{props.taskName}</Typography>
                 </AccordionSummary>
-                {console.log("PROPS -> TASKLIST", props.taskList)}
                 {props.taskList.map((task, key) => {
                   return (
                     <AccordionDetails component="fieldset" className={classes.formControl} id={key}>
                       <div>
                         <Typography variant="subtitle1" color="textSecondary">
-                          {task.name}
+                          {task.description}
                         </Typography>
                         <Grid container>
                           <Grid item>
                             <Quest
                               onChange={handleAnswers}
-                              //answer={getString(task.data.form.fldModel)}
+                              answer={getString(task.data.form.fldModel)}
                               taskName={props.taskName}
-                              //data={task.data.form}
-                              //fldName={task.data.form.fldName}
+                              data={task.data.form}
+                              task={task}
+                              fldName={task.data.form.fldName}
                             />
                           </Grid>
                           <Grid item>
@@ -703,7 +697,6 @@ const Solution = (props) => {
               </Accordion>
             </Box>
           </div>
-          {console.log("value value", value)}
           <Dialog className={classes.dialogue} fullScreen open={utility} onClose={handleClose}>
             <TabContext value={value}>
               <AppBar position="static">
@@ -889,12 +882,17 @@ const Solution = (props) => {
                     <h3 style={{ marginTop: "10px", marginLeft: "-20px" }}>Uploaded Artifacts</h3>
                   </Grid>
                 </Grid>
-
                 <Grid container spacing={3} className={classes.content}>
                   {!artifactLoading ? (
-                    artifacts.map((art, key) => {
-                      return <SingleArtifact art={art} getArtifacts={getArtifacts} />;
-                    })
+                    artifacts.length === 0 ? (
+                      <Typography style={{ textAlign: "center", marginLeft: "35%" }}>
+                        No Artifacts Available
+                      </Typography>
+                    ) : (
+                      artifacts.map((art, key) => {
+                        return <SingleArtifact art={art} getArtifacts={getArtifacts} />;
+                      })
+                    )
                   ) : (
                     <Grid
                       style={{

@@ -42,7 +42,6 @@ function trayIcon() {
       click: () => {
         mainWindow.show();
         mainWindow.webContents.send("tray-screen-shot", true);
-        console.log("tray screen shot");
       },
       type: "normal",
     },
@@ -151,7 +150,6 @@ function createFile() {
 app.on("ready", async () => {
   if (!createFile()) {
     await readFile();
-    // console.log("Read a file now",hotKeys)
   }
   createWindow();
   console.log("Window ready");
@@ -172,13 +170,11 @@ app.on("activate", () => {
 
 // An ipc-main functions to be called from a chiiled process (renderer process)
 ipcMain.on("create-notification", async (event, arg) => {
-  //console.log("Notification will be called ")
   createNotification(arg);
   event.reply("notification", arg);
 });
 
 ipcMain.on("save-keys", async (event, arg) => {
-  //  console.log("This is called called" , arg)
   let flag = 0;
 
   if (arg.minimize) {
@@ -231,7 +227,6 @@ ipcMain.on("save-keys", async (event, arg) => {
 ipcMain.on("take-screenshot", (event, arg) => {
   // console.log("File Name " , arg)
   screenshot({ filename: homedir + "/" + arg }).then((img) => {
-    console.log("Captured");
     createNotification();
   });
 });

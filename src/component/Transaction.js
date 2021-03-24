@@ -239,6 +239,7 @@ export default function Transaction() {
   const [configData, setConfigData] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [save, setSave] = useState(false);
+  const [configElements, setConfigElements] = useState([]);
 
   //---------------------------------------------------
   const [showSuccess, setShowSuccess] = useState(false);
@@ -275,42 +276,53 @@ export default function Transaction() {
     arr.push(...selectedTenant);
     localStorage.setItem("notebook", JSON.stringify(arr));
     setDisable(false);
-    console.table("Selected tenant", selectedTenant);
     getTasks(selectedTenant);
   };
 
   const UpdateModel = async () => {
     if (answers.length) {
-      console.log("can be submitted");
       // let set config Data wth the updated task solutions
-      let ConfigData = [...configData];
+      let ConfigData = [...configElements];
       answers.forEach((answer) => {
-        console.log("answer", answer);
         let index = ConfigData.findIndex(
           (cfdata) => cfdata.type === "TASK" && cfdata.data.form.fldName === answer.fldName
         );
-        console.log("index", index, "config data", ConfigData);
-        ConfigData[index].data.form.fldModel = "<p>" + answer.fldModel + "<br></p>";
+        ConfigData[index] &&
+          (ConfigData[index].data.form.fldModel = "<p>" + answer.fldModel + "<br></p>");
       });
-      setConfigData(configData, [...ConfigData]);
+      // setConfigData(configData, [...ConfigData]);
       // let set the updated config data to the model's config Data and extract some values
       let Model = model;
-      console.log("Model before parsing", Model);
-      let modelConfigData = JSON.parse(Model.configData);
-      console.log("Old config data", modelConfigData);
-      console.log("NEW CONFIG DATA", ConfigData);
-      modelConfigData.data = ConfigData;
-      console.log("Updated Config Data", modelConfigData);
-      Model.configData = JSON.stringify(modelConfigData);
-      console.log("Model after parsing", Model);
+      // console.log("Model before parsing", Model);
+      // let modelConfigData = JSON.parse(Model.configData);
+      // console.log("Old config data", modelConfigData);
+      // console.log("NEW CONFIG DATA", ConfigData);
+      // modelConfigData = ConfigData;
+      // console.log("Updated Config Data", modelConfigData);
+      // Model.configData = JSON.stringify(modelConfigData);
+      // console.log("Model after parsing", Model);
 
-      setModel(Model);
+      // setModel(Model);
 
       // add a fetch
       const sessionData = JSON.parse(sessionStorage.getItem("userAuthData"));
       const token = sessionData.token;
       const url = "https://cloud.so.ai:8443/API/Model/UpdateModel";
-      await fetch(url, {
+      const obj = {
+        tenantId: tenantId,
+        id: "86622cd9-be03-4f4e-b3a7-3a27a7f2641d",
+        mutations: [
+          {
+            action: "UPDATE-ELEMENT",
+            data: {
+              configData: JSON.stringify(ConfigData[0]),
+              type: "TASK",
+              typeId: localStorage.getItem("taskId"),
+            },
+          },
+        ],
+      };
+      await fetch("https://cloud.so.ai:8443/API/Model/UpdateModelV3", {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
           Accept: "application/json, text/plain, */*",
@@ -320,11 +332,9 @@ export default function Transaction() {
           Authorization: "Bearer " + token,
         },
         method: "Post",
-        body: JSON.stringify(Model),
+        body: JSON.stringify(obj),
       })
-        .then((res) => res.json())
         .then((jsonResponse) => {
-          console.log("response", jsonResponse);
           // now set the success response and set everything to null
           setShowSuccess(true);
           setAnswers([]);
@@ -383,7 +393,33 @@ export default function Transaction() {
         }
       });
   };
-
+  const getTasksWithForm = (filterDataCollectionTasks, elements) => {
+    const updated =
+      filterDataCollectionTasks.length > 0 &&
+      filterDataCollectionTasks.map((task) => {
+        const data = addData(task, elements);
+        return { ...task, data };
+      });
+    return updated;
+  };
+  const addData = (task, elements) => {
+    let data = {
+      form: {
+        fldModel: "",
+        fldName: "",
+      },
+    };
+    elements.length > 0 &&
+      elements.map((element) => {
+        if (
+          element.data.categoryID === task.categoryID &&
+          element.data.description === task.description
+        ) {
+          data = element.data;
+        }
+      });
+    return data;
+  };
   // fetch to get task of each notebook .
   const getTasks = async (selectedTenant) => {
     const tenantId = selectedTenant[0].tenantId;
@@ -414,31 +450,78 @@ export default function Transaction() {
           let configData =
             JSON.parse(jsonResponse.model.configData).data ||
             JSON.parse(jsonResponse.model.configData);
+          // configData = [{...configData}]
+          setConfigData([{ ...configData }]);
 
-          setConfigData([...configData]);
-
-          let indexes = [];
-
-          configData.map((data, index) => {
-            if (
-              data.name === "Data Collection" ||
-              data.name === "Early Data Analysis" ||
-              data.name === "Model Development" ||
-              data.name === "Model Usage" ||
-              data.name === "ALL" ||
-              data.name === "Legal" ||
-              data.name === "Other"
-            )
-              indexes.push(index);
+          let elements = [];
+          configData.elements.map((element) => {
+            elements.push(JSON.parse(element.configData));
           });
+          setConfigElements(elements);
 
-          setDataCollectionTasks([...configData.slice(indexes[0] + 1, indexes[1])]);
-          setEarlyDataAnalysisTasks([...configData.slice(indexes[1] + 1, indexes[2])]);
-          setModelDevelopmentTasks([...configData.slice(indexes[2] + 1, indexes[3])]);
-          setModelUsageTasks([...configData.slice(indexes[3] + 1, indexes[4])]);
-          setAllTasks([...configData.slice(indexes[4] + 1, indexes[5])]);
-          setLegalTasks([...configData.slice(indexes[5] + 1, indexes[6])]);
-          setOtherTasks([...configData.slice(indexes[6] + 1, configData.length)]);
+          setDataCollectionTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "1")) ||
+                [],
+              elements
+            )
+          );
+          setEarlyDataAnalysisTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "2")) ||
+                [],
+              elements
+            )
+          );
+          setModelDevelopmentTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "4")) ||
+                [],
+              elements
+            )
+          );
+          setModelUsageTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "5")) ||
+                [],
+              elements
+            )
+          );
+          setAllTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "6")) ||
+                [],
+              elements
+            )
+          );
+          setLegalTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "7")) ||
+                [],
+              elements
+            )
+          );
+          setOtherTasks(
+            getTasksWithForm(
+              (configData.tasks &&
+                configData.tasks.length > 0 &&
+                configData.tasks.filter((task) => task.categoryID === "8")) ||
+                [],
+              elements
+            )
+          );
 
           setLoader("none");
           setShow("block");
@@ -533,7 +616,6 @@ export default function Transaction() {
                   <Card
                     className={classes.card}
                     onClick={() => {
-                      console.log("Clicked on tenat", tenant);
                       setTenant(tenant);
                       changeFirst(false);
                       changeSecond(true);
@@ -594,7 +676,6 @@ export default function Transaction() {
 
           {second && (
             <div>
-              {console.log("Tenant on clicking next button", tenant)}
               <Container maxWidth="xs">
                 {showSuccess && <Alert severity="success">Model Updated Successfully !</Alert>}
               </Container>

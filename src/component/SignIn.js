@@ -92,7 +92,6 @@ export default function SignIn() {
       console.log("No user Found");
     }
     setView(getContext);
-    console.log("In sign in context", getContext());
   }, []);
 
   React.useEffect(() => {
