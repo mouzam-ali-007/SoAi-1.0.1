@@ -239,6 +239,7 @@ export default function Transaction() {
   const [configData, setConfigData] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [save, setSave] = useState(false);
+  const [configElements, setConfigElements] = useState([]);
 
   //---------------------------------------------------
   const [showSuccess, setShowSuccess] = useState(false);
@@ -275,14 +276,13 @@ export default function Transaction() {
     arr.push(...selectedTenant);
     localStorage.setItem("notebook", JSON.stringify(arr));
     setDisable(false);
-    console.table("Selected tenant", selectedTenant);
     getTasks(selectedTenant);
   };
 
   const UpdateModel = async () => {
     if (answers.length) {
       // let set config Data wth the updated task solutions
-      let ConfigData = [...configData];
+      let ConfigData = [...configElements];
       answers.forEach((answer) => {
         let index = ConfigData.findIndex(
           (cfdata) => cfdata.type === "TASK" && cfdata.data.form.fldName === answer.fldName
@@ -290,25 +290,39 @@ export default function Transaction() {
         ConfigData[index] &&
           (ConfigData[index].data.form.fldModel = "<p>" + answer.fldModel + "<br></p>");
       });
-      setConfigData(configData, [...ConfigData]);
+      // setConfigData(configData, [...ConfigData]);
       // let set the updated config data to the model's config Data and extract some values
       let Model = model;
-      console.log("Model before parsing", Model);
-      let modelConfigData = JSON.parse(Model.configData);
-      console.log("Old config data", modelConfigData);
-      console.log("NEW CONFIG DATA", ConfigData);
-      modelConfigData.data = ConfigData;
-      console.log("Updated Config Data", modelConfigData);
-      Model.configData = JSON.stringify(modelConfigData);
-      console.log("Model after parsing", Model);
+      // console.log("Model before parsing", Model);
+      // let modelConfigData = JSON.parse(Model.configData);
+      // console.log("Old config data", modelConfigData);
+      // console.log("NEW CONFIG DATA", ConfigData);
+      // modelConfigData = ConfigData;
+      // console.log("Updated Config Data", modelConfigData);
+      // Model.configData = JSON.stringify(modelConfigData);
+      // console.log("Model after parsing", Model);
 
-      setModel(Model);
+      // setModel(Model);
 
       // add a fetch
       const sessionData = JSON.parse(sessionStorage.getItem("userAuthData"));
       const token = sessionData.token;
       const url = "https://cloud.so.ai:8443/API/Model/UpdateModel";
-      await fetch(url, {
+      const obj = {
+        tenantId: tenantId,
+        id: "86622cd9-be03-4f4e-b3a7-3a27a7f2641d",
+        mutations: [
+          {
+            action: "UPDATE-ELEMENT",
+            data: {
+              configData: JSON.stringify(ConfigData[0]),
+              type: "TASK",
+              typeId: localStorage.getItem("taskId"),
+            },
+          },
+        ],
+      };
+      await fetch("https://cloud.so.ai:8443/API/Model/UpdateModelV3", {
         headers: {
           "Content-Type": "application/json;charset=UTF-8",
           Accept: "application/json, text/plain, */*",
@@ -318,11 +332,9 @@ export default function Transaction() {
           Authorization: "Bearer " + token,
         },
         method: "Post",
-        body: JSON.stringify(Model),
+        body: JSON.stringify(obj),
       })
-        .then((res) => res.json())
         .then((jsonResponse) => {
-          console.log("response", jsonResponse);
           // now set the success response and set everything to null
           setShowSuccess(true);
           setAnswers([]);
@@ -382,7 +394,6 @@ export default function Transaction() {
       });
   };
   const getTasksWithForm = (filterDataCollectionTasks, elements) => {
-    console.log("in", filterDataCollectionTasks);
     const updated =
       filterDataCollectionTasks.length > 0 &&
       filterDataCollectionTasks.map((task) => {
@@ -433,7 +444,6 @@ export default function Transaction() {
     })
       .then((res) => res.json())
       .then((jsonResponse) => {
-        console.log("all response", jsonResponse);
         if (jsonResponse.model && jsonResponse.model.configData !== null) {
           setModel(jsonResponse.model);
 
@@ -443,11 +453,11 @@ export default function Transaction() {
           // configData = [{...configData}]
           setConfigData([{ ...configData }]);
 
-          console.log("config data ", configData);
           let elements = [];
           configData.elements.map((element) => {
             elements.push(JSON.parse(element.configData));
           });
+          setConfigElements(elements);
 
           setDataCollectionTasks(
             getTasksWithForm(
@@ -606,7 +616,6 @@ export default function Transaction() {
                   <Card
                     className={classes.card}
                     onClick={() => {
-                      console.log("Clicked on tenat", tenant);
                       setTenant(tenant);
                       changeFirst(false);
                       changeSecond(true);
@@ -667,7 +676,6 @@ export default function Transaction() {
 
           {second && (
             <div>
-              {console.log("Tenant on clicking next button", tenant)}
               <Container maxWidth="xs">
                 {showSuccess && <Alert severity="success">Model Updated Successfully !</Alert>}
               </Container>

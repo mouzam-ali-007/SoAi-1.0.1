@@ -88,7 +88,6 @@ function SingleArtifact({ art, getArtifacts }) {
         setFileDownloading(false);
       })
       .catch((err) => {
-        console.log("error", err);
         setFileDownloading(false);
       });
   };
@@ -114,15 +113,11 @@ function SingleArtifact({ art, getArtifacts }) {
     })
       .then((res) => res.blob())
       .then((jsonResponse) => {
-        console.log("Json response from file download => ", jsonResponse);
-
         var reader = new FileReader();
         reader.readAsDataURL(jsonResponse);
         reader.onloadend = function () {
           var base64data = reader.result;
-          // console.log('Base 64 data =>', base64data)
           let checkMimeType = base64data.slice(5, 10);
-          console.log("Check Mime type  => ", checkMimeType);
           if (checkMimeType === "image") {
             setImageBase64(base64data);
             setIsImage(true);
@@ -145,9 +140,6 @@ function SingleArtifact({ art, getArtifacts }) {
   };
 
   const removeArtifact = async (art) => {
-    console.log("file to be removed");
-    console.table(art);
-
     const tenantId = art.tenantId;
     const fileType = art.type;
     const fileId = art.id;
@@ -160,8 +152,6 @@ function SingleArtifact({ art, getArtifacts }) {
       fileType: fileType,
       fileId: fileId,
     };
-
-    console.log("Body of removing file", raw);
 
     //fetch will come below
 

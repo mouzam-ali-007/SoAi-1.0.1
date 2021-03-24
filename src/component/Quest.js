@@ -13,11 +13,11 @@ const Quest = (props) => {
 
   const handleAnswers = (event) => {
     setAnswer(event.target.value);
+    localStorage.setItem("taskId", props.task.taskID);
     //lets construct an state for sending back to parent component
 
-    const { name, value } = event.target;
-    setObject({ ...object, [name]: value });
-    console.log("Object from Quest component", object);
+    const { name } = event.target;
+    setObject({ ...object, [name]: event.target.value });
 
     // lets send the object state back to onchange came by prop
     props.onChange(object);

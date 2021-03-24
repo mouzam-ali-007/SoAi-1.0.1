@@ -21,7 +21,6 @@ const filePath = window.require("os").homedir() + "/soai/hotKeys.json";
 let hotKeys = {};
 
 const readFile = async () => {
-  console.log("filePath", filePath);
   hotKeys = await fs.readFile(filePath, "utf8");
   hotKeys = JSON.parse(hotKeys);
 };

@@ -44,12 +44,10 @@ class Snipper extends React.Component {
     };
   }
   initCropper(e) {
-    console.log("LOGGER", global);
     mainWindow = this.getCurrentWindow();
     // mainWindow.transparent = true
     mainWindow.hide();
 
-    console.log("initCropper", e);
     snipWindow = new BrowserWindow({
       frame: false,
       transparent: true,
