@@ -94,6 +94,11 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: theme.spacing(8),
     paddingRight: theme.spacing(2),
   },
+  backbtn: {
+    paddingLeft: theme.spacing(3),
+    paddingRight: theme.spacing(2),
+  },
+
   collapsabe: {
     // height:"40px",
     border: "0.5px solid transparent",
@@ -252,8 +257,13 @@ export default function Transaction() {
   const [show, setShow] = useState("none");
 
   const [list, setList] = useState([]);
+  const [notebookList, setNotebookList] = useState(false);
 
   const [tenant, setTenant] = useState({});
+  const [tenantID, setTenantID] = useState("");
+
+  const [subscription, setSubscription] = useState(false);
+  const [multipleTenant, setMultipleTenant] = useState([]);
 
   //--------------------------------------------------
   const [disconnection, setDisconnection] = useState(false);
@@ -363,18 +373,18 @@ export default function Transaction() {
     let session = {
       refreshToken: refreshToken,
     };
-
+    setNotebookList(false);
     localStorage.setItem(
       "interval",
       setInterval(() => reNewToken({ session }), 15000)
     );
-    var raw = { tenantId: tenantId, page: 1, count: 25 };
+    var raw = { tenantId: tenantID, page: 1, count: 25 };
 
     await fetch(url, {
       headers: {
         "Content-Type": "application/json;charset=UTF-8",
         Accept: "application/json, text/plain, */*",
-        TenantId: tenantId,
+        TenantId: tenantID,
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36",
         Authorization: "Bearer " + token,
@@ -385,11 +395,14 @@ export default function Transaction() {
       .then((res) => res.json())
       .then((jsonResponse) => {
         if (jsonResponse.message) {
-          console.log("Need to refresh the token ");
-          setDisconnection(true);
-          onDisconnection();
+          console.log("Need to refresh the token ", jsonResponse);
+          setShowError(true);
+          setNotebookList(true);
+          // setDisconnection(true);
+          //  onDisconnection();
         } else {
           setList(jsonResponse.list);
+          setNotebookList(false);
         }
       });
   };
@@ -527,10 +540,7 @@ export default function Transaction() {
           setShow("block");
           setShowError(false);
         } else {
-          console.log(
-            "******************* Erooor in get tasks ((((((((((((()))))))))))))))))))000",
-            jsonResponse
-          );
+          console.log("******************* Error in get tasks*********************", jsonResponse);
           setLoader("none");
           setShow("none");
           setShowError(true);
@@ -547,6 +557,12 @@ export default function Transaction() {
   };
 
   useEffect(() => {
+    if (localStorage.getItem("tenants")) {
+      setMultipleTenant(JSON.parse(localStorage.getItem("tenants")));
+    }
+  }, []);
+
+  useEffect(() => {
     if (localStorage.getItem("notebook")) {
       setTenant(JSON.parse(localStorage.getItem("notebook"))[0]);
 
@@ -555,7 +571,7 @@ export default function Transaction() {
     }
 
     getNotebooks();
-  }, []);
+  }, [tenantID]);
 
   const handleAnswers = (object) => {
     let Answers = [...answers];
@@ -568,10 +584,21 @@ export default function Transaction() {
       setSave(true);
     } else {
       Answers[index].fldModel = object.fldModel;
-      console.log("Updated Answer is ", Answers);
       setAnswers([...Answers]);
       setSave(true);
     }
+  };
+
+  const changeSubsription = () => {
+    setList([]);
+    setSubscription(false);
+    setShowError(false);
+    setNotebookList(false);
+  };
+
+  const onClickSubsription = (val) => {
+    setTenantID(val.id);
+    setSubscription(true);
   };
 
   return (
@@ -583,12 +610,69 @@ export default function Transaction() {
 
         <Grid item xs={11}>
           <Header />
-          {first && (
+
+          {!subscription && (
+            <Grid container>
+              <Grid
+                item
+                xs={12}
+                className="scrollbar"
+                style={{
+                  maxHeight: "400px",
+                  overflowY: "scroll",
+                }}
+              >
+                <Box className={classes.box}>
+                  <div>
+                    <h3 style={{ color: "white" }}>Select Subscription</h3>
+                  </div>
+                  <Typography component="h5" variant="h5" style={{ fontSize: "20px" }}>
+                    You are subscribed to multiple subscriptions. Please select the subscription
+                    that you would like to access now.
+                  </Typography>
+
+                  {multipleTenant.map((val, index) => {
+                    return (
+                      <p
+                        key={index}
+                        style={{
+                          marginTop: "15px",
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          height: "40px",
+                          padding: "15px",
+                          fontSize: "20px",
+                        }}
+                        onClick={() => onClickSubsription(val)}
+                      >
+                        {" "}
+                        {val.businessName}{" "}
+                      </p>
+                    );
+                  })}
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+
+          {subscription && first && (
             <div>
               <Box className={classes.box}>
-                <InputLabel id="demo-simple-select-filled-label">
-                  <h4 style={{ color: "white" }}>Select Notebook</h4>
-                </InputLabel>
+                <Box className={classes.backbtn}>
+                  <Grid container>
+                    <Grid item xs={1}>
+                      <Button className={classes.back} onClick={changeSubsription}>
+                        <ArrowBackOutlinedIcon fontSize="medium" />
+                      </Button>
+                    </Grid>
+
+                    <InputLabel id="demo-simple-select-filled-label">
+                      <h3 style={{ marginLeft: "-25px", marginTop: "2px", color: "white" }}>
+                        Select Notebook
+                      </h3>
+                    </InputLabel>
+                  </Grid>
+                </Box>
+
                 <Select
                   labelId="demo-simple-select-filled-label"
                   id="demo-simple-select-filled"
@@ -610,71 +694,67 @@ export default function Transaction() {
                   })}
                 </Select>
               </Box>
+              {notebookList && (
+                <Container maxWidth="xs">
+                  <Alert severity="error">Notebooks are not available.</Alert>
+                </Container>
+              )}
 
-              <Box className={classes.borderBox}>
-                {Object.entries(tenant).length > 0 && (
-                  <Card
-                    className={classes.card}
-                    onClick={() => {
-                      setTenant(tenant);
-                      changeFirst(false);
-                      changeSecond(true);
-                      setShow("block");
-                    }}
-                  >
-                    <CardContent>
-                      <Grid container>
-                        <Grid item xs={2}>
-                          <Typography component="h5" variant="h5" className={classes.heading}>
-                            {tenant.name[0].toUpperCase() + tenant.name[1].toUpperCase()}
-                          </Typography>
+              {list.length ? (
+                <Box className={classes.borderBox}>
+                  {Object.entries(tenant).length > 0 && (
+                    <Card
+                      className={classes.card}
+                      onClick={() => {
+                        setTenant(tenant);
+                        changeFirst(false);
+                        changeSecond(true);
+                        setShow("block");
+                      }}
+                    >
+                      <CardContent>
+                        <Grid container>
+                          <Grid item xs={2}>
+                            <Typography component="h5" variant="h5" className={classes.heading}>
+                              {tenant.name[0].toUpperCase() + tenant.name[1].toUpperCase()}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={4} className={classes.rightSide}>
+                            <div className={classes.description}>
+                              <Typography component="h5" variant="h5">
+                                {tenant.name}
+                              </Typography>
+                              <Typography
+                                className={classes.truncText}
+                                variant="subtitle1"
+                                color="textSecondary"
+                              >
+                                {tenant.description}
+                              </Typography>
+                              <Typography
+                                className={classes.status}
+                                variant="subtitle1"
+                                color="textSecondary"
+                              >
+                                Active
+                              </Typography>
+                              <Typography variant="subtitle1" color="textSecondary">
+                                {tenant.createdBy}
+                              </Typography>
+                            </div>
+                          </Grid>
                         </Grid>
-                        <Grid item xs={4} className={classes.rightSide}>
-                          <div className={classes.description}>
-                            <Typography component="h5" variant="h5">
-                              {tenant.name}
-                            </Typography>
-                            <Typography
-                              className={classes.truncText}
-                              variant="subtitle1"
-                              color="textSecondary"
-                            >
-                              {tenant.description}
-                            </Typography>
-                            <Typography
-                              className={classes.status}
-                              variant="subtitle1"
-                              color="textSecondary"
-                            >
-                              Active
-                            </Typography>
-                            <Typography variant="subtitle1" color="textSecondary">
-                              {tenant.createdBy}
-                            </Typography>
-                          </div>
-                        </Grid>
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                )}
-                {/* {disable ? (
-                  <div></div>
-                ) : (
-                  <Button
-                    type='submit'
-                    variant='contained'
-                    className={classes.btnMain}
-                    onClick={secondScreen}
-                    disabled={disable}
-                  >
-                    Next
-                  </Button>
-                )} */}
-              </Box>
+                      </CardContent>
+                    </Card>
+                  )}
+                </Box>
+              ) : (
+                ""
+              )}
             </div>
           )}
 
-          {second && (
+          {subscription && second && (
             <div>
               <Container maxWidth="xs">
                 {showSuccess && <Alert severity="success">Model Updated Successfully !</Alert>}

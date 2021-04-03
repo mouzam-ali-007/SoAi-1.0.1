@@ -451,7 +451,6 @@ const Solution = (props) => {
         setIsLoading(false);
       });
   };
-
   const uploadFile = async () => {
     if (file.name) {
       setImageLoading(true);
