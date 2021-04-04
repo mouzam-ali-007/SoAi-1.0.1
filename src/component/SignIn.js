@@ -189,46 +189,54 @@ export default function SignIn() {
             var tenants = JSON.parse(jsonResponse.tenants);
             localStorage.setItem("tenants", JSON.stringify(tenants));
             let data = jsonResponse;
-            tenants.forEach((value) => {
-              if (value.roles.length) {
-                setRoles(value.roles);
-              }
+
+            var promise = new Promise((resolve, reject) => {
+              tenants.forEach((value, index) => {
+                if (value.roles.length) {
+                  setRoles(value.roles);
+                  resolve({ status: true, index });
+                }
+              });
             });
 
-            sessionStorage.setItem(
-              "userAuthData",
-              JSON.stringify({
-                userId: data.id,
-                token: data.access_token,
-                expires: data[".expires"],
-                refreshToken: data.refresh_token,
-                tenantId: tenants[2].id,
-                roles: tenants[2].roles,
-              })
-            );
-            sessionStorage.setItem(
-              "userSessionData",
-              JSON.stringify({
-                isHostMode: false,
-                userId: data.id,
-                userName: data.userName,
-                profilePicUrl: "",
-                languagePref: "",
-                firstName: "",
-                lastName: "",
-                tenant: {
-                  id: tenants[2].id,
-                  businessName: tenants[2].businessName,
-                },
-              })
-            );
-            setLoggedIn(!isloggedIn);
-            setIsLoggedIn(true);
-            setIsLoading(false);
-            settings.setSync("user-login-data", {
-              userEmail: email,
-              userPassword: password,
+            promise.then((val) => {
+              console.log("Promise", val);
+              sessionStorage.setItem(
+                "userAuthData",
+                JSON.stringify({
+                  userId: data.id,
+                  token: data.access_token,
+                  expires: data[".expires"],
+                  refreshToken: data.refresh_token,
+                  tenantId: tenants[val.index].id,
+                  roles: tenants[val.index].roles,
+                })
+              );
+              sessionStorage.setItem(
+                "userSessionData",
+                JSON.stringify({
+                  isHostMode: false,
+                  userId: data.id,
+                  userName: data.userName,
+                  profilePicUrl: "",
+                  languagePref: "",
+                  firstName: "",
+                  lastName: "",
+                  tenant: {
+                    id: tenants[val.index].id,
+                    businessName: tenants[val.index].businessName,
+                  },
+                })
+              );
+              setLoggedIn(!isloggedIn);
+              setIsLoggedIn(true);
+              setIsLoading(false);
+              settings.setSync("user-login-data", {
+                userEmail: email,
+                userPassword: password,
+              });
             });
+
             // ipcRenderer.sendSync('set-password', 'haseeb', 'Foo')
           }
         });

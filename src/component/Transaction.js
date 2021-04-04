@@ -295,7 +295,8 @@ export default function Transaction() {
       let ConfigData = [...configElements];
       answers.forEach((answer) => {
         let index = ConfigData.findIndex(
-          (cfdata) => cfdata.type === "TASK" && cfdata.data.form.fldName === answer.fldName
+          (cfdata) =>
+            cfdata && cfdata.type === "TASK" && cfdata.data.form.fldName === answer.fldName
         );
         ConfigData[index] &&
           (ConfigData[index].data.form.fldModel = "<p>" + answer.fldModel + "<br></p>");
@@ -345,6 +346,7 @@ export default function Transaction() {
         body: JSON.stringify(obj),
       })
         .then((jsonResponse) => {
+          console.log("JSON RESPONSE", jsonResponse);
           // now set the success response and set everything to null
           setShowSuccess(true);
           setAnswers([]);
@@ -422,10 +424,13 @@ export default function Transaction() {
         fldName: "",
       },
     };
+    console.log("Elements", elements);
     elements.length > 0 &&
       elements.map((element) => {
         if (
+          element &&
           element.data.categoryID === task.categoryID &&
+          element &&
           element.data.description === task.description
         ) {
           data = element.data;
