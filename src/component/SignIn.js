@@ -193,6 +193,7 @@ export default function SignIn() {
             var promise = new Promise((resolve, reject) => {
               tenants.forEach((value, index) => {
                 if (value.roles.length) {
+                  localStorage.setItem("TenantId", value.id);
                   setRoles(value.roles);
                   resolve({ status: true, index });
                 }
@@ -200,7 +201,6 @@ export default function SignIn() {
             });
 
             promise.then((val) => {
-              console.log("Promise", val);
               sessionStorage.setItem(
                 "userAuthData",
                 JSON.stringify({

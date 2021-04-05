@@ -346,7 +346,6 @@ export default function Transaction() {
         body: JSON.stringify(obj),
       })
         .then((jsonResponse) => {
-          console.log("JSON RESPONSE", jsonResponse);
           // now set the success response and set everything to null
           setShowSuccess(true);
           setAnswers([]);
@@ -370,6 +369,7 @@ export default function Transaction() {
     //  setImage("Select a File From Your Computer or Specify a URL")
   };
 
+  console.log("Tenant Id", tenantId);
   // fetch notebooks api
   const getNotebooks = async () => {
     let session = {
@@ -380,6 +380,7 @@ export default function Transaction() {
       "interval",
       setInterval(() => reNewToken({ session }), 15000)
     );
+
     var raw = { tenantId: tenantID, page: 1, count: 25 };
 
     await fetch(url, {
@@ -424,7 +425,6 @@ export default function Transaction() {
         fldName: "",
       },
     };
-    console.log("Elements", elements);
     elements.length > 0 &&
       elements.map((element) => {
         if (
@@ -567,6 +567,7 @@ export default function Transaction() {
     }
   }, []);
 
+  //console.log("Tenant", localStorage.getItem("TenantId"));
   useEffect(() => {
     if (localStorage.getItem("notebook")) {
       setTenant(JSON.parse(localStorage.getItem("notebook"))[0]);
@@ -575,6 +576,9 @@ export default function Transaction() {
       getTasks(JSON.parse(localStorage.getItem("notebook")));
     }
 
+    if (localStorage.getItem("TenantId")) {
+      setTenantID(localStorage.getItem("TenantId"));
+    }
     getNotebooks();
   }, [tenantID]);
 
@@ -602,8 +606,8 @@ export default function Transaction() {
   };
 
   const onClickSubsription = (val) => {
-    setTenantID(val.id);
-    setSubscription(true);
+    //  setTenantID(val.id);
+    // setSubscription(true);
   };
 
   return (
@@ -616,7 +620,7 @@ export default function Transaction() {
         <Grid item xs={11}>
           <Header />
 
-          {!subscription && (
+          {false && (
             <Grid container>
               <Grid
                 item
@@ -659,16 +663,16 @@ export default function Transaction() {
             </Grid>
           )}
 
-          {subscription && first && (
+          {first && (
             <div>
               <Box className={classes.box}>
                 <Box className={classes.backbtn}>
                   <Grid container>
-                    <Grid item xs={1}>
+                    {/* <Grid item xs={1}>
                       <Button className={classes.back} onClick={changeSubsription}>
                         <ArrowBackOutlinedIcon fontSize="medium" />
                       </Button>
-                    </Grid>
+                    </Grid> */}
 
                     <InputLabel id="demo-simple-select-filled-label">
                       <h3 style={{ marginLeft: "-25px", marginTop: "2px", color: "white" }}>
@@ -759,7 +763,7 @@ export default function Transaction() {
             </div>
           )}
 
-          {subscription && second && (
+          {second && (
             <div>
               <Container maxWidth="xs">
                 {showSuccess && <Alert severity="success">Model Updated Successfully !</Alert>}

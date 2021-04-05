@@ -109,9 +109,9 @@ const useStyles = makeStyles((theme) => ({
   },
   dialogue: {
     marginLeft: theme.spacing(11),
-    marginBottom: theme.spacing(1),
-    marginTop: theme.spacing(2),
-    marginRight: theme.spacing(5),
+    marginBottom: theme.spacing(0),
+    marginTop: theme.spacing(4),
+    marginRight: theme.spacing(1),
   },
   content: {
     paddingLeft: theme.spacing(8),
