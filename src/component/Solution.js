@@ -789,13 +789,15 @@ const Solution = (props) => {
                           </div>
                         </>
                       ) : (
-                        <div>
-                          {imageUploaded ? (
-                            <h4>Screenshot uploaded successfully.</h4>
-                          ) : (
-                            <h4>No screenshot available.</h4>
-                          )}
-                        </div>
+                        <Grid xs="12">
+                          <div style={{ whiteSpace: "nowrap" }}>
+                            {imageUploaded ? (
+                              <h4>Screenshot uploaded successfully.</h4>
+                            ) : (
+                              <h4>No screenshot available.</h4>
+                            )}
+                          </div>
+                        </Grid>
                       )}
                       {}
                     </div>
