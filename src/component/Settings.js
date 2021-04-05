@@ -10,6 +10,7 @@ import {
   TextField,
   Button,
   Menu,
+  Select,
   MenuItem,
 } from "@material-ui/core";
 const { ipcRenderer } = window.require("electron");
@@ -51,10 +52,15 @@ const useStyles = makeStyles((theme) => ({
   heading: {
     marginTop: theme.spacing(2),
   },
+
+  hotKey: {
+    marginTop: theme.spacing(3),
+  },
   done: {
     backgroundColor: "#121212",
     border: "1px solid rgba(255,255,255,0.12)",
     color: "white",
+    display: "flex",
     float: "right",
     marginTop: theme.spacing(3),
     marginRight: theme.spacing(2),
@@ -91,6 +97,9 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Settings() {
   const classes = useStyles();
+
+  const [tenants, setTenants] = useState([]);
+  const [tenantId, setTenantId] = useState("");
 
   const [minimize, setMinimize] = useState("");
   const [maximize, setMaximize] = useState("");
@@ -136,7 +145,25 @@ export default function Settings() {
     };
 
     loadData();
+    getTenants();
   }, []);
+
+  const getTenants = async () => {
+    let tenants = localStorage.getItem("tenants");
+    setTenants(JSON.parse(tenants));
+  };
+
+  const handleTenant = (event) => {
+    console.log(event.target.value);
+    setTenantId(event.target.value);
+    //setCapture(event.target.value);
+  };
+
+  const saveTenant = async () => {
+    if (tenantId) {
+      localStorage.setItem("TenantId", tenantId);
+    }
+  };
 
   const saveKeys = async () => {
     let shortCuts = {
@@ -275,6 +302,42 @@ export default function Settings() {
           <Header />
           <Box className={classes.box}>
             <Typography component="h5" variant="h5" className={classes.heading}>
+              Select Subscription
+            </Typography>
+
+            <Select
+              labelId="demo-simple-select-filled-label"
+              id="demo-simple-select-filled"
+              fullWidth
+              style={{ marginTop: "10px", backgroundColor: "rgba(255,255,255,0.12)" }}
+              // value={age}
+              onChange={handleTenant}
+            >
+              <MenuItem value="none" disabled>
+                <em>Subscription Dropdown</em>
+              </MenuItem>
+
+              {tenants.map((ls, index) => {
+                return (
+                  <MenuItem key={index} value={ls.id}>
+                    {ls.businessName}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+
+            <Grid xs="12">
+              <Button
+                type="submit"
+                disabled={tenantId ? false : true}
+                className={classes.done}
+                onClick={saveTenant}
+              >
+                Save
+              </Button>
+            </Grid>
+
+            <Typography component="h5" variant="h5" className={classes.hotKey}>
               Hot Keys
             </Typography>
 

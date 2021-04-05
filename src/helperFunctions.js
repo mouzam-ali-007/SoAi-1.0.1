@@ -72,18 +72,29 @@ export async function reNewToken({ session }) {
     .then((res) => res.json())
     .then((jsonResponse) => {
       var tenants = JSON.parse(jsonResponse.tenants);
-      sessionStorage.setItem(
-        "userAuthData",
-        JSON.stringify({
-          userId: jsonResponse.id,
-          token: jsonResponse.access_token,
-          expires: jsonResponse[".expires"],
-          refreshToken: jsonResponse.refresh_token,
-          tenantId: tenants[0].id,
-          roles: tenants[0].roles,
-        })
-      );
 
+      var promise = new Promise((resolve, reject) => {
+        tenants.forEach((value, index) => {
+          if (value.roles.length) {
+            localStorage.setItem("TenantId", value.id);
+            resolve({ status: true, index });
+          }
+        });
+      });
+
+      promise.then((val) => {
+        sessionStorage.setItem(
+          "userAuthData",
+          JSON.stringify({
+            userId: jsonResponse.id,
+            token: jsonResponse.access_token,
+            expires: jsonResponse[".expires"],
+            refreshToken: jsonResponse.refresh_token,
+            tenantId: tenants[val.index].id,
+            roles: tenants[val.index].roles,
+          })
+        );
+      });
       // also set the new time and new token to the  session
 
       session.refreshToken = jsonResponse.refresh_token;
