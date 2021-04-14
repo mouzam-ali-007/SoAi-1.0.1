@@ -382,32 +382,33 @@ export default function Transaction() {
     );
 
     var raw = { tenantId: tenantID, page: 1, count: 25 };
-
-    await fetch(url, {
-      headers: {
-        "Content-Type": "application/json;charset=UTF-8",
-        Accept: "application/json, text/plain, */*",
-        TenantId: tenantID,
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36",
-        Authorization: "Bearer " + token,
-      },
-      method: "Post",
-      body: JSON.stringify(raw),
-    })
-      .then((res) => res.json())
-      .then((jsonResponse) => {
-        if (jsonResponse.message) {
-          console.log("Need to refresh the token ", jsonResponse);
-          setShowError(true);
-          setNotebookList(true);
-          // setDisconnection(true);
-          //  onDisconnection();
-        } else {
-          setList(jsonResponse.list);
-          setNotebookList(false);
-        }
-      });
+      if(tenantID){
+        await fetch(url, {
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            Accept: "application/json, text/plain, */*",
+            TenantId: tenantID,
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36",
+            Authorization: "Bearer " + token,
+          },
+          method: "Post",
+          body: JSON.stringify(raw),
+        })
+          .then((res) => res.json())
+          .then((jsonResponse) => {
+            if (jsonResponse.message) {
+              console.log("Need to refresh the token ", jsonResponse);
+              setShowError(true);
+              setNotebookList(true);
+              // setDisconnection(true);
+              //  onDisconnection();
+            } else {
+              setList(jsonResponse.list);
+              setNotebookList(false);
+            }
+          });
+      }
   };
   const getTasksWithForm = (filterDataCollectionTasks, elements) => {
     const updated =
